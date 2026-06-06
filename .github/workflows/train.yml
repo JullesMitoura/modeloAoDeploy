@@ -1,6 +1,11 @@
 name: Train Model
 
 on:
+  push:
+    branches: [modulo06]
+    paths:
+      - 'src/**'
+      - 'requirements.backend.txt'
   schedule:
     - cron: '0 * * * *'  # toda hora
   workflow_dispatch:
