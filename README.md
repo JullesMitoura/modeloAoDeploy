@@ -82,11 +82,14 @@ ModeloAoDeploy/
 ├── src/
 │   ├── functions/
 │   │   ├── database.py              (conexao e queries SQLite)
-│   │   └── model.py                 (treinar, avaliar, salvar, carregar)
+│   │   └── model.py                 (pipeline: treinar, avaliar, salvar, carregar, prever)
+│   ├── services/
+│   │   └── inference.py             (API FastAPI)
 │   └── utils/
 │       ├── preprocessing.py         (feature engineering e split)
 │       └── visualization.py         (plots EDA e avaliacao)
-├── .env
+├── Dockerfile
+├── .dockerignore
 ├── requirements.txt
 └── README.md
 ```
@@ -105,34 +108,59 @@ source .venv/bin/activate      # Linux/Mac
 pip install -r requirements.txt
 ```
 
-### 2. Configurar variaveis de ambiente
-
-O arquivo `.env` ja esta configurado com os caminhos padrao:
-
-```
-DB_PATH=data/motor.db
-MODEL_PATH=models/motor_classifier.joblib
-```
-
-### 3. Executar a EDA
+### 2. Executar a EDA
 
 Abra o notebook `notebooks/01_eda.ipynb` no VS Code ou Jupyter e execute todas as celulas.
 
-### 4. Treinar o modelo
+### 3. Treinar o modelo
 
 Abra o notebook `notebooks/02_modeling.ipynb` e execute todas as celulas. O artefato sera salvo em `models/motor_classifier.joblib`.
 
-### 5. Usar o modelo via codigo
+### 4. Rodar a API localmente
+
+```bash
+uvicorn src.services.inference:app --reload
+```
+
+### 5. Rodar a API via Docker
+
+```bash
+docker build -t motor-inference .
+docker run -p 8000:8000 motor-inference
+```
+
+A API sobe em `http://localhost:8000`. Endpoints disponíveis:
+
+| Método | Rota | Descricao |
+|--------|------|-----------|
+| GET | `/health` | Verifica se a API esta no ar |
+| POST | `/predict` | Recebe leituras de sensores e retorna a classificacao |
+
+Exemplo de requisicao:
+
+```json
+{
+  "rotacao_rpm": 1800.0,
+  "vibracao_mm_s": 8.5,
+  "temperatura_c": 95.0,
+  "corrente_a": 18.2
+}
+```
+
+Documentacao interativa disponível em `http://localhost:8000/docs`.
+
+### 6. Usar o modelo via codigo
 
 ```python
-from src.functions.model import load
+from src.functions.model import predict
 
-artefato = load()
-model  = artefato["model"]
-scaler = artefato["scaler"]
-
-# X deve conter as colunas de FEATURE_COLS (ver preprocessing.py)
-predicao = model.predict(scaler.transform(X))
+resultado = predict(vars={
+    "rotacao_rpm": 1800.0,
+    "vibracao_mm_s": 8.5,
+    "temperatura_c": 95.0,
+    "corrente_a": 18.2,
+})
+# {"falha": "Superaquecimento", "probabilidades": {...}}
 ```
 
 ---
@@ -153,7 +181,7 @@ Alem das quatro leituras brutas dos sensores, sao criadas features derivadas com
 
 ### Modelo
 
-**Random Forest** com `class_weight="balanced"` para compensar o desbalanceamento de classes.
+Pipeline **StandardScaler + Random Forest** com `class_weight="balanced"` para compensar o desbalanceamento de classes.
 
 ### Metricas esperadas
 
@@ -161,9 +189,3 @@ Alem das quatro leituras brutas dos sensores, sao criadas features derivadas com
 |---------|---------------|
 | Accuracy | > 0.90 |
 | F1 Macro | > 0.85 |
-
----
-
-## Proximos Modulos
-
-**Modulo 02** vai empacotar este modelo em uma API REST usando FastAPI e Docker, expondo um endpoint `/predict` que recebe leituras de sensores e retorna a classificacao da falha.
