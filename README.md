@@ -1,6 +1,6 @@
 # Modelo ao Deploy: Diagnostico de Falhas em Motores Industriais
 
-Curso completo que percorre o ciclo de vida de um projeto de Machine Learning em producao: da definicao do problema ate a publicacao na nuvem.
+Curso completo que percorre o ciclo de vida de um projeto de Machine Learning em producao: da definicao do problema ate a publicacao na nuvem com pipeline automatizado.
 
 ---
 
@@ -9,10 +9,11 @@ Curso completo que percorre o ciclo de vida de um projeto de Machine Learning em
 | Modulo | Topico | Tecnologias |
 |--------|--------|-------------|
 | 01 | Definicao de Projeto e Desenvolvimento do Modelo | Python, scikit-learn, XGBoost |
-| 02 | Conteinerizacao e Serving via API | FastAPI, Docker |
-| 03 | Desenvolvimento de Dashboard | Streamlit |
-| 04 | Deploy do Modelo na AWS | AWS, Docker |
-| 05 | Publicacao da Aplicacao e Boas Praticas | AWS, CI/CD |
+| 02 | Refatoracao e Serving via API | FastAPI, Docker |
+| 03 | Deploy do Modelo na AWS | AWS ECR, Elastic Beanstalk |
+| 04 | Dashboard Interativo | Streamlit |
+| 05 | CI/CD para o Backend | GitHub Actions |
+| 06 | Artefatos no S3, Deploy do Frontend e Pipeline de Retreino | AWS S3, GitHub Actions |
 
 ---
 
@@ -82,15 +83,28 @@ ModeloAoDeploy/
 ├── src/
 │   ├── functions/
 │   │   ├── database.py              (conexao e queries SQLite)
-│   │   └── model.py                 (pipeline: treinar, avaliar, salvar, carregar, prever)
+│   │   └── model.py                 (pipeline: treinar, salvar, carregar, prever)
 │   ├── services/
-│   │   └── inference.py             (API FastAPI)
+│   │   ├── inference.py             (API FastAPI)
+│   │   └── train.py                 (script de retreino com upload para S3)
 │   └── utils/
-│       ├── preprocessing.py         (feature engineering e split)
-│       └── visualization.py         (plots EDA e avaliacao)
-├── Dockerfile
-├── .dockerignore
-├── requirements.txt
+│       └── preprocessing.py         (feature engineering e split)
+├── docs/
+│   ├── deploy-aws-mac-linux.md      (deploy manual — macOS e Linux)
+│   ├── deploy-aws-windows.md        (deploy manual — Windows)
+│   └── s3-setup.md                  (configurar S3, ECR e EB para o modulo 06)
+├── .github/
+│   └── workflows/
+│       ├── deploy-backend.yml       (CI/CD do backend)
+│       ├── deploy-frontend.yml      (CI/CD do frontend)
+│       └── train.yml                (retreino agendado)
+├── app.py                           (dashboard Streamlit)
+├── Dockerfile.backend
+├── Dockerfile.frontend
+├── Dockerrun.aws.json               (configuracao Elastic Beanstalk)
+├── requirements.backend.txt
+├── requirements.frontend.txt
+├── requirements.txt                 (ambiente local completo)
 └── README.md
 ```
 
@@ -125,7 +139,7 @@ uvicorn src.services.inference:app --reload
 ### 5. Rodar a API via Docker
 
 ```bash
-docker build -t motor-inference .
+docker build -f Dockerfile.backend -t motor-inference .
 docker run -p 8000:8000 motor-inference
 ```
 
@@ -149,26 +163,21 @@ Exemplo de requisicao:
 
 Documentacao interativa disponível em `http://localhost:8000/docs`.
 
-### 6. Deploy na AWS
+### 6. Rodar o dashboard localmente
+
+```bash
+streamlit run app.py
+```
+
+O dashboard sobe em `http://localhost:8501`. Configure a URL do endpoint na barra lateral.
+
+### 7. Deploy na AWS
 
 Consulte o guia completo de acordo com seu sistema operacional:
 
 - [macOS e Linux](docs/deploy-aws-mac-linux.md)
 - [Windows](docs/deploy-aws-windows.md)
-
-### 7. Usar o modelo via codigo
-
-```python
-from src.functions.model import predict
-
-resultado = predict(vars={
-    "rotacao_rpm": 1800.0,
-    "vibracao_mm_s": 8.5,
-    "temperatura_c": 95.0,
-    "corrente_a": 18.2,
-})
-# {"falha": "Superaquecimento", "probabilidades": {...}}
-```
+- [S3, ECR e pipeline de retreino](docs/s3-setup.md)
 
 ---
 
@@ -188,7 +197,7 @@ Alem das quatro leituras brutas dos sensores, sao criadas features derivadas com
 
 ### Modelo
 
-Pipeline **StandardScaler + Random Forest** com `class_weight="balanced"` para compensar o desbalanceamento de classes.
+Pipeline **StandardScaler + Random Forest** com `class_weight="balanced"`. O modelo e comparado com XGBoost no notebook de modelagem (`notebooks/02_modeling.ipynb`).
 
 ### Metricas esperadas
 
