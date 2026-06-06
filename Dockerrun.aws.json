@@ -1,7 +1,7 @@
 {
   "AWSEBDockerrunVersion": "1",
   "Image": {
-    "Name": "<AWS_ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/motor-inference:latest",
+    "Name": "975037863921.dkr.ecr.us-east-1.amazonaws.com/motor-inference:latest",
     "Update": "true"
   },
   "Ports": [

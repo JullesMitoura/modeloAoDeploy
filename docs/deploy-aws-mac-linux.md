@@ -149,6 +149,55 @@ eb terminate motor-inference-env
 
 ---
 
+## Chamar o Endpoint via Python
+
+Substitua `<URL>` pelo valor do campo `CNAME` retornado pelo `eb status`.
+
+```python
+import requests
+
+url = "http://<URL>"
+
+# Verificar se a API esta no ar
+response = requests.get(f"{url}/health")
+print(response.json())  # {"status": "ok"}
+
+# Realizar uma predicao
+leitura = {
+    "rotacao_rpm": 1800.0,
+    "vibracao_mm_s": 8.5,
+    "temperatura_c": 95.0,
+    "corrente_a": 18.2,
+}
+
+response = requests.post(f"{url}/predict", json=leitura)
+resultado = response.json()
+
+print(f"Falha detectada : {resultado['falha']}")
+for classe, prob in resultado["probabilidades"].items():
+    print(f"  {classe:20s}: {prob:.2%}")
+```
+
+Resposta esperada:
+
+```
+Falha detectada : Superaquecimento
+  Normal              : 0.00%
+  Desbalanceamento    : 28.50%
+  Superaquecimento    : 70.50%
+  Falha mecanica      : 1.00%
+```
+
+### Documentacao interativa
+
+Acesse no navegador:
+
+```
+http://<URL>/docs
+```
+
+---
+
 ## Custos estimados (single-instance)
 
 | Recurso | Custo estimado/mes |
