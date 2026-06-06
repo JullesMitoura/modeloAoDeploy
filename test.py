@@ -1,6 +1,9 @@
+import os
 import requests
+from dotenv import load_dotenv
 
-url = "http://motor-inference-env.eba-w58rcav3.us-east-1.elasticbeanstalk.com"
+load_dotenv()
+url = os.getenv("APP_URL")
 
 # Verificar se a API esta no ar
 response = requests.get(f"{url}/health")
