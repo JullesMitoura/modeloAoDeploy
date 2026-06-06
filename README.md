@@ -149,7 +149,14 @@ Exemplo de requisicao:
 
 Documentacao interativa disponível em `http://localhost:8000/docs`.
 
-### 6. Usar o modelo via codigo
+### 6. Deploy na AWS
+
+Consulte o guia completo de acordo com seu sistema operacional:
+
+- [macOS e Linux](docs/deploy-aws-mac-linux.md)
+- [Windows](docs/deploy-aws-windows.md)
+
+### 7. Usar o modelo via codigo
 
 ```python
 from src.functions.model import predict
