@@ -82,11 +82,10 @@ ModeloAoDeploy/
 ├── src/
 │   ├── functions/
 │   │   ├── database.py              (conexao e queries SQLite)
-│   │   └── model.py                 (treinar, avaliar, salvar, carregar)
+│   │   └── model.py                 (pipeline: treinar, avaliar, salvar, carregar, prever)
 │   └── utils/
 │       ├── preprocessing.py         (feature engineering e split)
 │       └── visualization.py         (plots EDA e avaliacao)
-├── .env
 ├── requirements.txt
 └── README.md
 ```
@@ -105,34 +104,26 @@ source .venv/bin/activate      # Linux/Mac
 pip install -r requirements.txt
 ```
 
-### 2. Configurar variaveis de ambiente
-
-O arquivo `.env` ja esta configurado com os caminhos padrao:
-
-```
-DB_PATH=data/motor.db
-MODEL_PATH=models/motor_classifier.joblib
-```
-
-### 3. Executar a EDA
+### 2. Executar a EDA
 
 Abra o notebook `notebooks/01_eda.ipynb` no VS Code ou Jupyter e execute todas as celulas.
 
-### 4. Treinar o modelo
+### 3. Treinar o modelo
 
 Abra o notebook `notebooks/02_modeling.ipynb` e execute todas as celulas. O artefato sera salvo em `models/motor_classifier.joblib`.
 
-### 5. Usar o modelo via codigo
+### 4. Usar o modelo via codigo
 
 ```python
-from src.functions.model import load
+from src.functions.model import predict
 
-artefato = load()
-model  = artefato["model"]
-scaler = artefato["scaler"]
-
-# X deve conter as colunas de FEATURE_COLS (ver preprocessing.py)
-predicao = model.predict(scaler.transform(X))
+resultado = predict(vars={
+    "rotacao_rpm": 1800.0,
+    "vibracao_mm_s": 8.5,
+    "temperatura_c": 95.0,
+    "corrente_a": 18.2,
+})
+# {"falha": "Superaquecimento", "probabilidades": {...}}
 ```
 
 ---
@@ -153,7 +144,7 @@ Alem das quatro leituras brutas dos sensores, sao criadas features derivadas com
 
 ### Modelo
 
-**Random Forest** com `class_weight="balanced"` para compensar o desbalanceamento de classes.
+Pipeline **StandardScaler + Random Forest** com `class_weight="balanced"` para compensar o desbalanceamento de classes.
 
 ### Metricas esperadas
 
