@@ -6,3 +6,5 @@ joblib==1.5.3
 python-dotenv==1.2.2
 fastapi
 uvicorn
+requests
+streamlit
