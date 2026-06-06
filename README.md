@@ -80,7 +80,7 @@ ModeloAoDeploy/
 │   ├── 01_eda.ipynb                 (analise exploratoria)
 │   └── 02_modeling.ipynb            (treinamento e avaliacao)
 ├── src/
-│   ├── services/
+│   ├── functions/
 │   │   ├── database.py              (conexao e queries SQLite)
 │   │   └── model.py                 (treinar, avaliar, salvar, carregar)
 │   └── utils/
@@ -125,7 +125,7 @@ Abra o notebook `notebooks/02_modeling.ipynb` e execute todas as celulas. O arte
 ### 5. Usar o modelo via codigo
 
 ```python
-from src.services.model import load
+from src.functions.model import load
 
 artefato = load()
 model  = artefato["model"]
@@ -153,7 +153,7 @@ Alem das quatro leituras brutas dos sensores, sao criadas features derivadas com
 
 ### Modelo
 
-**Random Forest** com `class_weight="balanced"` para compensar o desbalanceamento de classes. O modelo e comparado com **XGBoost** no notebook de modelagem.
+**Random Forest** com `class_weight="balanced"` para compensar o desbalanceamento de classes.
 
 ### Metricas esperadas
 
