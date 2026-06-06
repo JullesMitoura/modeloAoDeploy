@@ -104,8 +104,18 @@ def save(pipeline: Pipeline, path: str = MODEL_PATH) -> None:
     joblib.dump({"pipeline": pipeline}, path)
 
 
-def load(path: str = MODEL_PATH) -> dict:
-    return joblib.load(path)
+def load() -> dict:
+    from src.config import S3_BUCKET, S3_MODEL_KEY
+
+    if S3_BUCKET:
+        import tempfile
+        import boto3
+        s3 = boto3.client("s3")
+        with tempfile.NamedTemporaryFile(suffix=".joblib", delete=False) as tmp:
+            s3.download_file(S3_BUCKET, S3_MODEL_KEY, tmp.name)
+            return joblib.load(tmp.name)
+
+    return joblib.load(MODEL_PATH)
 
 
 def predict(

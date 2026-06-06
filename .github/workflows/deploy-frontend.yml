@@ -1,13 +1,13 @@
-name: Deploy Backend
+name: Deploy Frontend
 
 on:
   push:
-    branches: [modulo05]
+    branches: [modulo06]
 
 env:
-  ECR_REPOSITORY: motor-inference
-  EB_APPLICATION: motor-inference
-  EB_ENVIRONMENT: motor-inference-env
+  ECR_REPOSITORY: motor-frontend
+  EB_APPLICATION: motor-frontend
+  EB_ENVIRONMENT: motor-frontend-env
 
 jobs:
   deploy:
@@ -35,7 +35,7 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -f Dockerfile.backend -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -f Dockerfile.frontend -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
@@ -52,7 +52,7 @@ jobs:
               "Name": "$IMAGE_URI",
               "Update": "true"
             },
-            "Ports": [{"ContainerPort": 8000, "HostPort": 80}]
+            "Ports": [{"ContainerPort": 8501, "HostPort": 80}]
           }
           EOF
 
